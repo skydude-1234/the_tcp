@@ -22,9 +22,9 @@ public class TCP_entityDispatcher {
             AzPlayBehaviors.LOOP
     );
 
-    private static final AzCommand DEATH_COMMAND = AzCommand.create(
+    private static final AzCommand STARTFLOAT = AzCommand.create(
             "base_controller",
-            "death",
+            "startFloat",
             AzPlayBehaviors.HOLD_ON_LAST_FRAME
     );
 
@@ -46,7 +46,7 @@ public class TCP_entityDispatcher {
         RUN_COMMAND.sendForEntity(tcpentity);
     }
 
-    public void death() {
-        DEATH_COMMAND.sendForEntity(tcpentity);
+    public void startFloat() {
+        STARTFLOAT.sendForEntity(tcpentity);
     }
 }

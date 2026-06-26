@@ -17,7 +17,7 @@ public class TCP_entityAnimator extends AzEntityAnimator<TCP_entity> {
     @Override
     public void registerControllers(AzAnimationControllerContainer<TCP_entity> animationControllerContainer) {
         animationControllerContainer.add(
-                AzAnimationController.builder(this, "movement_controller").build(),
+                AzAnimationController.builder(this, "base_controller").build(),
                 AzAnimationController.builder(this, "attack_controller").build(),
                 AzAnimationController.builder(this, "procedure").build()
         );
