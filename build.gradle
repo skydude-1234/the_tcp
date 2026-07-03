@@ -14,6 +14,10 @@ repositories {
         name = "AzureDoom Mods"
         url = "https://maven.azuredoom.com/mods"
     }
+    maven {
+        name = "CurseMaven"
+        url = "https://cursemaven.com"
+    }
 
 }
 
@@ -123,6 +127,7 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
     // AZURELIB
     implementation "mod.azure.azurelib:azurelib-neo-${minecraft_version}:${azure_version}"
+    runtimeOnly "curse.maven:jade-324717:6853386"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

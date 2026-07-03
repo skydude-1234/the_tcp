@@ -9,13 +9,15 @@ import java.util.Objects;
 
 public class AnimatedSyncMeleeAttackGoal extends Goal {
     protected final PathfinderMob entity;
-    private final double speedModifier;
-    private final int attackAnimationTicks;
-    private final int attackDamageTick;
-    private final Runnable attackAnimation;
-    private LivingEntity attackTarget;
-    private int attackAnimationTick;
-    private boolean attackDamageDone;
+    public final double speedModifier;
+
+    public final int attackAnimationTicks;
+    public final int attackDamageTick;
+
+    public final Runnable attackAnimation;
+    public LivingEntity attackTarget;
+    public int attackAnimationTick;
+    public boolean attackDamageDone;
     public final double attackreachsqr;
 
 

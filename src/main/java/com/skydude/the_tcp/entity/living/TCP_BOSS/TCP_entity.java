@@ -24,8 +24,8 @@ import net.minecraft.world.level.Level;
 import java.util.Objects;
 
 public class TCP_entity extends Monster  {
-    private static int attack_damage_delay_tick = 10;
-    private static int attack_animation_length_tick = 20;
+    public static int attack_damage_delay_tick = 10;
+    public static int attack_animation_length_tick = 20;
     public String attack_name = "attack";
     private boolean hasPlayedSpawnAnimation;
     // This is your class where you will setup the AzCommands/Animations you wish to play
@@ -95,7 +95,11 @@ public class TCP_entity extends Monster  {
         return (double)(width * width + entity.getBbWidth()) + 1.0D;
     }
 
-
+    public  boolean canHitAttackTarget(LivingEntity target) {
+        return target.isAlive()
+                && this.hasLineOfSight(target)
+                && this.distanceToSqr(target) <= getAttackReachSqr(target);
+    }
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);

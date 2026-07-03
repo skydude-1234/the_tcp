@@ -3,6 +3,8 @@ package com.skydude.the_tcp.entity.living.TCP_BOSS;
 import mod.azure.azurelib.common.animation.dispatch.command.AzCommand;
 import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehaviors;
 
+import java.util.Objects;
+
 public class TCP_entityDispatcher {
     public String lastattackname = "attack";
     private static final AzCommand IDLE_COMMAND = AzCommand.create(
@@ -21,6 +23,12 @@ public class TCP_entityDispatcher {
             "attack",
             AzPlayBehaviors.PLAY_ONCE
     );
+    private static final AzCommand CRIT_COMMAND = AzCommand.create(
+            "attack_controller",
+            "critattack",
+            AzPlayBehaviors.PLAY_ONCE
+    );
+
 
     private static final AzCommand RUN_COMMAND = AzCommand.create(
             "base_controller",
@@ -49,8 +57,14 @@ public class TCP_entityDispatcher {
     }
     public void attack(TCP_entity entity) {
         String attackname = entity.attack_name;
-        ATTACK_COMMAND.sendForEntity(tcpentity);
-        lastattackname = "attack";
+
+        if(Objects.equals(attackname, "attack")){
+            ATTACK_COMMAND.sendForEntity(tcpentity);
+
+        } else if(Objects.equals(attackname, "critattack")){
+            CRIT_COMMAND.sendForEntity(tcpentity);
+        }
+        lastattackname = attackname;
     }
 
     public void run() {
