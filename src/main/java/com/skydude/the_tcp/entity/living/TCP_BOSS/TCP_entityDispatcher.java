@@ -4,6 +4,7 @@ import mod.azure.azurelib.common.animation.dispatch.command.AzCommand;
 import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehaviors;
 
 public class TCP_entityDispatcher {
+    public String lastattackname = "attack";
     private static final AzCommand IDLE_COMMAND = AzCommand.create(
             "base_controller",
             "idle",
@@ -12,8 +13,13 @@ public class TCP_entityDispatcher {
 
     private static final AzCommand WALK_COMMAND = AzCommand.create(
             "base_controller",
-            "walking",
+            "walk",
             AzPlayBehaviors.LOOP
+    );
+    private static final AzCommand ATTACK_COMMAND = AzCommand.create(
+            "attack_controller",
+            "attack",
+            AzPlayBehaviors.PLAY_ONCE
     );
 
     private static final AzCommand RUN_COMMAND = AzCommand.create(
@@ -40,6 +46,11 @@ public class TCP_entityDispatcher {
 
     public void walk() {
         WALK_COMMAND.sendForEntity(tcpentity);
+    }
+    public void attack(TCP_entity entity) {
+        String attackname = entity.attack_name;
+        ATTACK_COMMAND.sendForEntity(tcpentity);
+        lastattackname = "attack";
     }
 
     public void run() {

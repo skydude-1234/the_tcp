@@ -1,15 +1,17 @@
 package com.skydude.the_tcp.entity.living.TCP_BOSS;
 
+import com.skydude.the_tcp.entity.living.ai.AnimatedSyncMeleeAttackGoal;
+import com.skydude.the_tcp.entity.living.ai.TCP_entity_melee_goal;
 import mod.azure.azurelib.common.ai.pathing.AzureNavigation;
 import mod.azure.azurelib.common.util.MoveAnalysis;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
@@ -18,27 +20,42 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
+
+import java.util.Objects;
 
 public class TCP_entity extends Monster  {
+    private static int attack_damage_delay_tick = 10;
+    private static int attack_animation_length_tick = 20;
+    public String attack_name = "attack";
     private boolean hasPlayedSpawnAnimation;
     // This is your class where you will setup the AzCommands/Animations you wish to play
     public final TCP_entityDispatcher dispatcher;
 
     public final MoveAnalysis moveAnalysis;
 
-    public TCP_entity(EntityType<? extends Monster> type, Level level) {
+    public TCP_entity(EntityType<? extends TCP_entity> type, Level level) {
         super(type, level);
         // Create the instance of the class here to use later.
         this.dispatcher = new TCP_entityDispatcher(this);
         this.moveAnalysis = new MoveAnalysis(this);
 
     }
+    @Override
     protected void registerGoals() {
         super.registerGoals();
-  //      this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.2, false));
+        this.goalSelector.addGoal(0, new FloatGoal(this));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.goalSelector.addGoal(1, new TCP_entity_melee_goal(
+                this,
+                1.2,
+                getAttackReachSqr(this),
+                attack_animation_length_tick,
+                attack_damage_delay_tick,
+                () -> {
+                    dispatcher.attack(this);
+                    swing(InteractionHand.MAIN_HAND);
+                }){}
+        );
 
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Villager.class, true));
         this.targetSelector.addGoal(4, new HurtByTargetGoal(this));
@@ -57,15 +74,27 @@ public class TCP_entity extends Monster  {
     @Override
     public void tick() {
         super.tick();
+        moveAnalysis.update();
 
-        if (!level().isClientSide() && !hasPlayedSpawnAnimation) {
-            hasPlayedSpawnAnimation = true;
-
-            dispatcher.startFloat();
-
+        if (!this.level().isClientSide) {
+            if (!moveAnalysis.isMoving()){
+                // If the entity is standing still on the ground, play the idle loop
+                this.dispatcher.idle();
+            } else {
+                dispatcher.walk();
+            }
         }
 
+
     }
+
+
+
+    public double getAttackReachSqr(LivingEntity entity) {
+        float width = this.getBbWidth() * 2.0F;
+        return (double)(width * width + entity.getBbWidth()) + 1.0D;
+    }
+
 
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
@@ -84,6 +113,7 @@ public class TCP_entity extends Monster  {
                 .add(Attributes.ATTACK_DAMAGE, 6.0)
                 .add(Attributes.MAX_HEALTH, 20.0)
                 .add(Attributes.FOLLOW_RANGE, 24.0)
-                .add(Attributes.MOVEMENT_SPEED, .3);
+                .add(Attributes.KNOCKBACK_RESISTANCE, 1)
+                .add(Attributes.MOVEMENT_SPEED, .25);
     }
 }
