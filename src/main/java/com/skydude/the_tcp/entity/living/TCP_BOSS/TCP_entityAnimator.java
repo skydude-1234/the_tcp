@@ -1,5 +1,6 @@
 package com.skydude.the_tcp.entity.living.TCP_BOSS;
 
+import com.skydude.the_tcp.entity.living.ai.TCP_entity_melee_goal;
 import mod.azure.azurelib.common.animation.controller.AzAnimationController;
 import mod.azure.azurelib.common.animation.controller.AzAnimationControllerContainer;
 import mod.azure.azurelib.common.animation.controller.keyframe.AzKeyframeCallbacks;
@@ -51,8 +52,10 @@ public class TCP_entityAnimator extends AzEntityAnimator<TCP_entity> {
 
                                         ).setCustomInstructionKeyframeHandler(
                                                 event -> {
-                                                    if (event.getKeyframeData().getInstructions().equals("crit")) {
+                                                    if (event.getKeyframeData().getInstructions().equals("damage")) {
                                                         // Do your custom instructions here
+
+
 
                                                     }
                                                 }

@@ -5,7 +5,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 
 import java.util.Objects;
 
@@ -37,11 +36,16 @@ public class TCP_entity_melee_goal extends AnimatedSyncMeleeAttackGoal{
 
         if(this.entity.getHealth() < 20) {
             this.entity.attack_name = "critattack";
-
+            setAnimationTicks(10, 10);
         }
 
 
 
         this.attackAnimation.run();
+    }
+
+    public void setAnimationTicks(int duration, int damagedelay){
+        this.attackAnimationDurationTicks = duration;
+        this.attackDamageTick = damagedelay;
     }
 }

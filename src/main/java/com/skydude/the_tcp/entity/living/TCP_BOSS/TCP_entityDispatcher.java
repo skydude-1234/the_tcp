@@ -57,16 +57,18 @@ public class TCP_entityDispatcher {
     }
     public void attack(TCP_entity entity) {
         String attackname = entity.attack_name;
-
-        if(Objects.equals(attackname, "attack")){
-            ATTACK_COMMAND.sendForEntity(tcpentity);
-
-        } else if(Objects.equals(attackname, "critattack")){
-            CRIT_COMMAND.sendForEntity(tcpentity);
-        }
+        getAnimationCommand(attackname).sendForEntity(tcpentity);
         lastattackname = attackname;
     }
 
+    public AzCommand getAnimationCommand(String attackname){
+        if(Objects.equals(attackname, "attack")){
+            return(ATTACK_COMMAND);
+        } else if(Objects.equals(attackname, "critattack")){
+            return(CRIT_COMMAND);
+        }
+        return(ATTACK_COMMAND);
+    }
     public void run() {
         RUN_COMMAND.sendForEntity(tcpentity);
     }

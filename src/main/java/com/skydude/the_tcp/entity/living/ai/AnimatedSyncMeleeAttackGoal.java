@@ -11,8 +11,8 @@ public class AnimatedSyncMeleeAttackGoal extends Goal {
     protected final PathfinderMob entity;
     public final double speedModifier;
 
-    public final int attackAnimationTicks;
-    public final int attackDamageTick;
+    public  int attackAnimationDurationTicks;
+    public  int attackDamageTick;
 
     public final Runnable attackAnimation;
     public LivingEntity attackTarget;
@@ -25,21 +25,21 @@ public class AnimatedSyncMeleeAttackGoal extends Goal {
             PathfinderMob entity,
             double speedModifier,
             double attackreachsqr,
-            int attackAnimationTicks,
+            int attackAnimationDurationTicks,
             int attackDamageTick,
             Runnable attackAnimation
     ) {
-        if (attackAnimationTicks <= 0) {
+        if (attackAnimationDurationTicks <= 0) {
             throw new IllegalArgumentException("Attack animation length must be greater than 0 ticks");
         }
-        if (attackDamageTick < 0 || attackDamageTick > attackAnimationTicks) {
+        if (attackDamageTick < 0 || attackDamageTick > attackAnimationDurationTicks) {
             throw new IllegalArgumentException("Attack damage tick must be between 0 and the animation length");
         }
 
         this.entity = entity;
         this.speedModifier = speedModifier;
         this.attackreachsqr = attackreachsqr;
-        this.attackAnimationTicks = attackAnimationTicks;
+        this.attackAnimationDurationTicks = attackAnimationDurationTicks;
         this.attackDamageTick = attackDamageTick;
         this.attackAnimation = Objects.requireNonNull(attackAnimation);
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
@@ -119,7 +119,7 @@ public class AnimatedSyncMeleeAttackGoal extends Goal {
             this.doAttackDamage();
         }
 
-        if (this.attackAnimationTick >= this.attackAnimationTicks) {
+        if (this.attackAnimationTick >= this.attackAnimationDurationTicks) {
             this.clearAttackAnimation();
         }
     }

@@ -145,6 +145,9 @@
 						}
 					}
 				}
+			},
+			"timeline": {
+				"0.3": "damage"
 			}
 		},
 		"critattack": {
@@ -215,6 +218,9 @@
 					"locator": "crit",
 					"script": "crit"
 				}
+			},
+			"timeline": {
+				"0.3": "damage"
 			}
 		}
 	}
