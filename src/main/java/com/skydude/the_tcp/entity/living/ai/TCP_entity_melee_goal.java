@@ -35,9 +35,10 @@ public class TCP_entity_melee_goal extends AnimatedSyncMeleeAttackGoal{
         this.attackDamageDone = false;
         this.entity.getLookControl().setLookAt(this.attackTarget, 30.0F, 30.0F);
 
-        if(this.entity.getHealth() < 20) {
-            this.entity.attack_name = "critattack";
-            setAnimationTicks(10, 10);
+        if(this.entity.getHealth() < 10) {
+            setPhase(3);
+        } else if(this.entity.getHealth() < 20) {
+            setPhase(2);
         }
 
 
@@ -45,6 +46,16 @@ public class TCP_entity_melee_goal extends AnimatedSyncMeleeAttackGoal{
         this.attackAnimation.run();
     }
 
+    public void setPhase(int phase) {
+        this.entity.phase = phase;
+        if(phase == 2){
+            setAnimationTicks(11, 6);
+        }
+        if(phase == 3){
+            setPhase(2);
+            this.entity.attack_name = "critattack";
+        }
+    }
     public void setAnimationTicks(int duration, int damagedelay){
         this.attackAnimationDurationTicks = duration;
         this.attackDamageTick = damagedelay;
