@@ -28,6 +28,7 @@ public class TCP_entity extends Monster  {
     public static int attack_animation_length_tick = 20;
     public String attack_name = "attack";
     private boolean hasPlayedSpawnAnimation;
+    public int phase = 1;
     // This is your class where you will setup the AzCommands/Animations you wish to play
     public final TCP_entityDispatcher dispatcher;
 
@@ -88,11 +89,10 @@ public class TCP_entity extends Monster  {
 
     }
 
-
-
     public double getAttackReachSqr(LivingEntity entity) {
-        float width = this.getBbWidth() * 2.0F;
-        return (double)(width * width + entity.getBbWidth()) + 1.0D;
+//        float width = this.getBbWidth() * 2.0F;
+//        return (double)(width * width + entity.getBbWidth()) + 2.0D;
+        return 4;
     }
 
     public  boolean canHitAttackTarget(LivingEntity target) {
@@ -104,13 +104,16 @@ public class TCP_entity extends Monster  {
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.putBoolean("HasPlayedSpawnAnimation", hasPlayedSpawnAnimation);
+        compound.putInt("phase", phase);
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         hasPlayedSpawnAnimation = compound.getBoolean("HasPlayedSpawnAnimation");
+        phase = compound.getInt("phase");
     }
+
 
     public static AttributeSupplier.Builder createAttributes() {
         return LivingEntity.createLivingAttributes()

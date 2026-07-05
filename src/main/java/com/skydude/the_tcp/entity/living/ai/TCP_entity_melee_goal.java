@@ -33,6 +33,7 @@ public class TCP_entity_melee_goal extends AnimatedSyncMeleeAttackGoal{
         this.attackTarget = target;
         this.attackAnimationTick = 0;
         this.attackDamageDone = false;
+        this.entity.getLookControl().setLookAt(this.attackTarget, 30.0F, 30.0F);
 
         if(this.entity.getHealth() < 20) {
             this.entity.attack_name = "critattack";

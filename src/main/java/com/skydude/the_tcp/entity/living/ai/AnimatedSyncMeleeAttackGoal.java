@@ -3,6 +3,7 @@ package com.skydude.the_tcp.entity.living.ai;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.util.Mth;
 
 import java.util.EnumSet;
 import java.util.Objects;
@@ -60,7 +61,7 @@ public class AnimatedSyncMeleeAttackGoal extends Goal {
     @Override
     public void stop() {
       //  this.entity.getNavigation().stop();
-  //      this.clearAttackAnimation();
+        this.clearAttackAnimation();
     }
 
     @Override
@@ -85,15 +86,14 @@ public class AnimatedSyncMeleeAttackGoal extends Goal {
             return;
         }
 
-        this.entity.getLookControl().setLookAt(target, 30.0F, 30.0F);
-        this.entity.getNavigation().moveTo(target, this.speedModifier);
+        lookAtTarget(target);
 
-        if (!canHitAttackTarget(target)) {
+        if (canHitAttackTarget(target)) {
+            this.entity.getNavigation().stop();
+            this.startAttackAnimation(target);
+        } else {
             this.entity.getNavigation().moveTo(target, this.speedModifier);
-            return;
         }
-
-        this.startAttackAnimation(target);
     }
 
     public boolean isAttackAnimationPlaying() {
@@ -109,8 +109,13 @@ public class AnimatedSyncMeleeAttackGoal extends Goal {
 
     protected void tickAttackAnimation() {
         if (this.attackTarget != null && this.attackTarget.isAlive()) {
-            this.entity.getLookControl().setLookAt(this.attackTarget, 30.0F, 30.0F);
-            this.entity.getNavigation().moveTo(this.attackTarget, this.speedModifier);
+            lookAtTarget(attackTarget);
+
+            if (this.canHitAttackTarget(this.attackTarget)) {
+                this.entity.getNavigation().stop();
+            } else {
+                this.entity.getNavigation().moveTo(this.attackTarget, this.speedModifier);
+            }
         }
 
         this.attackAnimationTick++;
@@ -123,13 +128,29 @@ public class AnimatedSyncMeleeAttackGoal extends Goal {
             this.clearAttackAnimation();
         }
     }
+    public void lookAtTarget(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
 
+        this.entity.getLookControl().setLookAt(target, 30.0F, 30.0F);
+
+        double x = target.getX() - this.entity.getX();
+        double z = target.getZ() - this.entity.getZ();
+        if (Math.abs(x) > 1.0E-5 || Math.abs(z) > 1.0E-5) {
+            float yRot = (float)(Mth.atan2(z, x) * 180.0F / Math.PI) - 90.0F;
+            this.entity.setYRot(yRot);
+            this.entity.setYHeadRot(yRot);
+            this.entity.setYBodyRot(yRot);
+        }
+    }
     protected void doAttackDamage() {
         if (this.attackTarget != null && this.canHitAttackTarget(this.attackTarget)) {
             this.entity.doHurtTarget(this.attackTarget);
+            this.attackDamageDone = true;
         }
 
-        this.attackDamageDone = true;
+
         customattack();
     }
 
