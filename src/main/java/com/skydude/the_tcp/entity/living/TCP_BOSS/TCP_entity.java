@@ -1,6 +1,7 @@
 package com.skydude.the_tcp.entity.living.TCP_BOSS;
 
 import com.skydude.the_tcp.entity.living.ai.TCP_entity_melee_goal;
+import com.skydude.the_tcp.entity.living.ai.TCP_entity_build_path_goal;
 import mod.azure.azurelib.common.ai.pathing.AzureNavigation;
 import mod.azure.azurelib.common.util.MoveAnalysis;
 import net.minecraft.nbt.CompoundTag;
@@ -63,6 +64,7 @@ public class TCP_entity extends Monster  {
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(0, new TCP_entity_build_path_goal(this));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
         this.meleeGoal = new TCP_entity_melee_goal(
                 this,

@@ -138,7 +138,8 @@ public class AnimatedSyncMeleeAttackGoal extends Goal {
         double x = target.getX() - this.entity.getX();
         double z = target.getZ() - this.entity.getZ();
         if (Math.abs(x) > 1.0E-5 || Math.abs(z) > 1.0E-5) {
-            float yRot = (float)(Mth.atan2(z, x) * 180.0F / Math.PI) - 90.0F;
+            float targetYRot = (float)(Mth.atan2(z, x) * 180.0F / Math.PI) - 90.0F;
+            float yRot = Mth.rotateIfNecessary(this.entity.getYRot(), targetYRot, 30.0F);
             this.entity.setYRot(yRot);
             this.entity.setYHeadRot(yRot);
             this.entity.setYBodyRot(yRot);
