@@ -1,12 +1,13 @@
 package com.skydude.the_tcp.entity.living.TCP_BOSS;
 
-import com.skydude.the_tcp.entity.living.ai.TCP_entity_melee_goal;
 import mod.azure.azurelib.common.animation.controller.AzAnimationController;
 import mod.azure.azurelib.common.animation.controller.AzAnimationControllerContainer;
 import mod.azure.azurelib.common.animation.controller.keyframe.AzKeyframeCallbacks;
 import mod.azure.azurelib.common.animation.impl.AzEntityAnimator;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 import static com.skydude.the_tcp.The_tcp.MODID;
@@ -26,7 +27,10 @@ public class TCP_entityAnimator extends AzEntityAnimator<TCP_entity> {
                                         .setParticleKeyframeHandler(
                                                 event -> {
                                                     if (event.getKeyframeData().getEffect().equals("crit")) {
-                                                        TCP_entity entity = event.getAnimatable();
+                                                        Entity targetEntity = event.getAnimatable().level().getEntity(
+                                                                event.getAnimatable().getCritParticleTargetId()
+                                                        );
+                                                        if (!(targetEntity instanceof LivingEntity entity)) return;
 
                                                         for (int i = 0; i < 20; i++) {
                                                             double x = entity.getX() + (entity.getRandom().nextDouble() - 0.5) * entity.getBbWidth();
@@ -50,7 +54,8 @@ public class TCP_entityAnimator extends AzEntityAnimator<TCP_entity> {
                                                     }
                                                 }
 
-                                        ).setCustomInstructionKeyframeHandler(
+                                        )
+                                        .setCustomInstructionKeyframeHandler(
                                                 event -> {
                                                     if (event.getKeyframeData().getInstructions().equals("damage")) {
                                                         // Do your custom instructions here

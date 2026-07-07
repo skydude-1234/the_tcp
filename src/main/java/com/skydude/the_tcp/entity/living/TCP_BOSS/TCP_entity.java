@@ -1,10 +1,12 @@
 package com.skydude.the_tcp.entity.living.TCP_BOSS;
 
-import com.skydude.the_tcp.entity.living.ai.AnimatedSyncMeleeAttackGoal;
 import com.skydude.the_tcp.entity.living.ai.TCP_entity_melee_goal;
 import mod.azure.azurelib.common.ai.pathing.AzureNavigation;
 import mod.azure.azurelib.common.util.MoveAnalysis;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,26 +23,30 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
-import java.util.Objects;
-
 public class TCP_entity extends Monster  {
+    private static final EntityDataAccessor<Integer> CRIT_PARTICLE_TARGET_ID = SynchedEntityData.defineId(
+            TCP_entity.class,
+            EntityDataSerializers.INT
+    );
+
     public static int attack_damage_delay_tick = 10;
     public static int attack_animation_length_tick = 20;
     public String attack_name = "attack";
     private boolean hasPlayedSpawnAnimation;
     public int phase = 1;
+    public int attackrange = 4;
+    public boolean onstart = false;
     // This is your class where you will setup the AzCommands/Animations you wish to play
     public final TCP_entityDispatcher dispatcher;
 
     public final MoveAnalysis moveAnalysis;
-
     public TCP_entity(EntityType<? extends TCP_entity> type, Level level) {
         super(type, level);
         // Create the instance of the class here to use later.
         this.dispatcher = new TCP_entityDispatcher(this);
         this.moveAnalysis = new MoveAnalysis(this);
-
     }
+
     @Override
     protected void registerGoals() {
         super.registerGoals();
@@ -76,7 +82,10 @@ public class TCP_entity extends Monster  {
     public void tick() {
         super.tick();
         moveAnalysis.update();
+        if(!onstart){
+            onstart = true;
 
+        }
         if (!this.level().isClientSide) {
             if (!moveAnalysis.isMoving()){
                 // If the entity is standing still on the ground, play the idle loop
@@ -90,21 +99,28 @@ public class TCP_entity extends Monster  {
     }
 
     public double getAttackReachSqr(LivingEntity entity) {
-//        float width = this.getBbWidth() * 2.0F;
-//        return (double)(width * width + entity.getBbWidth()) + 2.0D;
-        return 4;
+        return attackrange;
+    }
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(CRIT_PARTICLE_TARGET_ID, 0);
     }
 
-    public  boolean canHitAttackTarget(LivingEntity target) {
-        return target.isAlive()
-                && this.hasLineOfSight(target)
-                && this.distanceToSqr(target) <= getAttackReachSqr(target);
+    public void setCritParticleTarget(LivingEntity target) {
+        this.entityData.set(CRIT_PARTICLE_TARGET_ID, target == null ? 0 : target.getId());
     }
+
+    public int getCritParticleTargetId() {
+        return this.entityData.get(CRIT_PARTICLE_TARGET_ID);
+    }
+
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.putBoolean("HasPlayedSpawnAnimation", hasPlayedSpawnAnimation);
         compound.putInt("phase", phase);
+        compound.putInt("attackrange", attackrange);
     }
 
     @Override
@@ -112,6 +128,9 @@ public class TCP_entity extends Monster  {
         super.readAdditionalSaveData(compound);
         hasPlayedSpawnAnimation = compound.getBoolean("HasPlayedSpawnAnimation");
         phase = compound.getInt("phase");
+        if (compound.contains("attackrange")) {
+            attackrange = compound.getInt("attackrange");
+        }
     }
 
 
@@ -121,6 +140,6 @@ public class TCP_entity extends Monster  {
                 .add(Attributes.MAX_HEALTH, 20.0)
                 .add(Attributes.FOLLOW_RANGE, 24.0)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1)
-                .add(Attributes.MOVEMENT_SPEED, .25);
+                .add(Attributes.MOVEMENT_SPEED, .2);
     }
 }

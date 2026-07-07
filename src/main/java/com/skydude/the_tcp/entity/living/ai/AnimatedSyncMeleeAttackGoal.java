@@ -144,7 +144,7 @@ public class AnimatedSyncMeleeAttackGoal extends Goal {
             this.entity.setYBodyRot(yRot);
         }
     }
-    protected void doAttackDamage() {
+    public void doAttackDamage() {
         if (this.attackTarget != null && this.canHitAttackTarget(this.attackTarget)) {
             this.entity.doHurtTarget(this.attackTarget);
             this.attackDamageDone = true;

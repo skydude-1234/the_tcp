@@ -16,6 +16,13 @@ public class TCP_entity_melee_goal extends AnimatedSyncMeleeAttackGoal{
     }
 
     @Override
+    public boolean canHitAttackTarget(LivingEntity target) {
+        return target.isAlive()
+                && entity.hasLineOfSight(target)
+                && entity.distanceToSqr(target) <= entity.getAttackReachSqr(target);
+    }
+
+    @Override
     public void customattack(){
         if(Objects.equals(entity.attack_name, "attack")){
                 if(Objects.equals(entity.dispatcher.lastattackname, "attack")){
@@ -34,13 +41,26 @@ public class TCP_entity_melee_goal extends AnimatedSyncMeleeAttackGoal{
         this.attackAnimationTick = 0;
         this.attackDamageDone = false;
         this.entity.getLookControl().setLookAt(this.attackTarget, 30.0F, 30.0F);
+        var health = this.entity.getHealth();
 
-        if(this.entity.getHealth() < 10) {
+        if(health <= 5){
+            setPhase(4);
+        } else if(health <= 10) {
             setPhase(3);
-        } else if(this.entity.getHealth() < 20) {
+        } else if(health <= 20) {
             setPhase(2);
         }
+        if(Objects.equals(this.entity.attack_name, "critattack") && this.entity.onGround()){
+            this.entity.setSprinting(true);
+            this.entity.getJumpControl().jump();
 
+            double x = target.getX() - this.entity.getX();
+            double z = target.getZ() - this.entity.getZ();
+            double distance = Math.sqrt(x * x + z * z);
+            if (distance > 1.0E-5D) {
+                this.entity.push(x / distance * 0.6D, 0.35D, z / distance * 0.6D);
+            }
+        }
 
 
         this.attackAnimation.run();
@@ -55,9 +75,31 @@ public class TCP_entity_melee_goal extends AnimatedSyncMeleeAttackGoal{
             setPhase(2);
             this.entity.attack_name = "critattack";
         }
+        if(phase == 4){
+            setPhase(3);
+            this.entity.attackrange = 9;
+        }
     }
     public void setAnimationTicks(int duration, int damagedelay){
         this.attackAnimationDurationTicks = duration;
         this.attackDamageTick = damagedelay;
+    }
+
+    @Override
+    protected void clearAttackAnimation() {
+        super.clearAttackAnimation();
+   //     this.entity.setSprinting(false);
+        this.entity.setCritParticleTarget(null);
+    }
+    @Override
+    public void doAttackDamage() {
+        if (this.attackTarget != null && this.canHitAttackTarget(this.attackTarget)) {
+            this.entity.doHurtTarget(this.attackTarget);
+            this.entity.setCritParticleTarget(this.entity.getTarget());
+            this.attackDamageDone = true;
+        }
+
+
+        customattack();
     }
 }
