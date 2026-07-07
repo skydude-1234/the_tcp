@@ -23,33 +23,11 @@ public class TCP_entity_melee_goal extends AnimatedSyncMeleeAttackGoal{
     }
 
     @Override
-    public void customattack(){
-        if(Objects.equals(entity.attack_name, "attack")){
-                if(Objects.equals(entity.dispatcher.lastattackname, "attack")){
-                    if(entity.hasEffect(MobEffects.DAMAGE_BOOST) ){
-                        int amplifier = entity.getEffect(MobEffects.DAMAGE_BOOST).getAmplifier();
-                        entity.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 30, amplifier + 1));
-                        System.out.println("amplifier: " + amplifier);
-                    }
-                    entity.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 30));
-                }
-        }
-    }
-    @Override
     protected void startAttackAnimation(LivingEntity target) {
         this.attackTarget = target;
         this.attackAnimationTick = 0;
         this.attackDamageDone = false;
-        this.entity.getLookControl().setLookAt(this.attackTarget, 30.0F, 30.0F);
-        var health = this.entity.getHealth();
-
-        if(health <= 5){
-            setPhase(4);
-        } else if(health <= 10) {
-            setPhase(3);
-        } else if(health <= 20) {
-            setPhase(2);
-        }
+        lookAtTarget(target);
         if(Objects.equals(this.entity.attack_name, "critattack") && this.entity.onGround()){
             this.entity.setSprinting(true);
             this.entity.getJumpControl().jump();
@@ -66,20 +44,6 @@ public class TCP_entity_melee_goal extends AnimatedSyncMeleeAttackGoal{
         this.attackAnimation.run();
     }
 
-    public void setPhase(int phase) {
-        this.entity.phase = phase;
-        if(phase == 2){
-            setAnimationTicks(11, 6);
-        }
-        if(phase == 3){
-            setPhase(2);
-            this.entity.attack_name = "critattack";
-        }
-        if(phase == 4){
-            setPhase(3);
-            this.entity.attackrange = 9;
-        }
-    }
     public void setAnimationTicks(int duration, int damagedelay){
         this.attackAnimationDurationTicks = duration;
         this.attackDamageTick = damagedelay;
@@ -88,7 +52,6 @@ public class TCP_entity_melee_goal extends AnimatedSyncMeleeAttackGoal{
     @Override
     protected void clearAttackAnimation() {
         super.clearAttackAnimation();
-   //     this.entity.setSprinting(false);
         this.entity.setCritParticleTarget(null);
     }
     @Override
@@ -98,8 +61,5 @@ public class TCP_entity_melee_goal extends AnimatedSyncMeleeAttackGoal{
             this.entity.setCritParticleTarget(this.entity.getTarget());
             this.attackDamageDone = true;
         }
-
-
-        customattack();
     }
 }

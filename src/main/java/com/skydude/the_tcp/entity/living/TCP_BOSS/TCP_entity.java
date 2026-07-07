@@ -25,6 +25,8 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 
@@ -41,17 +43,20 @@ public class TCP_entity extends Monster  {
     public String attack_name = "attack";
     private boolean hasPlayedSpawnAnimation;
     public int phase = 1;
-    public int attackrange = 4;
+    public int attackrange = 9;
     public boolean onstart = false;
     // This is your class where you will setup the AzCommands/Animations you wish to play
     public final TCP_entityDispatcher dispatcher;
 
     public final MoveAnalysis moveAnalysis;
+    private TCP_entity_melee_goal meleeGoal;
+
     public TCP_entity(EntityType<? extends TCP_entity> type, Level level) {
         super(type, level);
         // Create the instance of the class here to use later.
         this.dispatcher = new TCP_entityDispatcher(this);
         this.moveAnalysis = new MoveAnalysis(this);
+        this.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_SWORD));
     }
 
     @Override
@@ -59,7 +64,7 @@ public class TCP_entity extends Monster  {
         super.registerGoals();
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.goalSelector.addGoal(1, new TCP_entity_melee_goal(
+        this.meleeGoal = new TCP_entity_melee_goal(
                 this,
                 1.2,
                 getAttackReachSqr(this),
@@ -68,13 +73,10 @@ public class TCP_entity extends Monster  {
                 () -> {
                     dispatcher.attack(this);
                     swing(InteractionHand.MAIN_HAND);
-                }){}
-        );
-
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Villager.class, true));
-        this.targetSelector.addGoal(4, new HurtByTargetGoal(this));
-
-        this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
+                }){};
+        this.goalSelector.addGoal(1, this.meleeGoal);
+        this.targetSelector.addGoal(3, new HurtByTargetGoal(this));
+        this.goalSelector.addGoal(2, new LookAtPlayerGoal(this, Player.class, 10.0F));
         this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0D) {
 
         });
@@ -107,6 +109,37 @@ public class TCP_entity extends Monster  {
 
     public double getAttackReachSqr(LivingEntity entity) {
         return attackrange;
+    }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        boolean hurt = super.hurt(source, amount);
+        if (hurt) {
+            float healthPercent = this.getHealth() / this.getMaxHealth();
+
+            if(healthPercent <= 0.4){
+                setPhase(4);
+            } else if(healthPercent <= 0.6) {
+                setPhase(3);
+            } else if(healthPercent <= 0.8) {
+                setPhase(2);
+            }
+        }
+        return hurt;
+    }
+    public void setPhase(int phase) {
+        this.phase = phase;
+        if(phase == 2){
+            this.meleeGoal.setAnimationTicks(11, 6);
+        }
+        if(phase == 3){
+            setPhase(2);
+            this.attack_name = "critattack";
+        }
+        if(phase == 4){
+            setPhase(3);
+            this.attackrange = 16;
+        }
     }
     // horrendous override
     @Override
@@ -177,8 +210,8 @@ public class TCP_entity extends Monster  {
 
     public static AttributeSupplier.Builder createAttributes() {
         return LivingEntity.createLivingAttributes()
-                .add(Attributes.ATTACK_DAMAGE, 6.0)
-                .add(Attributes.MAX_HEALTH, 20.0)
+                .add(Attributes.ATTACK_DAMAGE, 1.0)
+                .add(Attributes.MAX_HEALTH, 200.0)
                 .add(Attributes.FOLLOW_RANGE, 24.0)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1)
                 .add(Attributes.MOVEMENT_SPEED, .2);
