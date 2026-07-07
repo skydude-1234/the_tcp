@@ -24,7 +24,6 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -39,8 +38,8 @@ public class TCP_entity extends Monster  {
             EntityDataSerializers.INT
     );
 
-    public static int attack_damage_delay_tick = 10;
-    public static int attack_animation_length_tick = 20;
+    public static int default_attack_damage_delay_tick = 10;
+    public static int default_attack_animation_length_tick = 20;
     public String attack_name = "attack";
     private boolean hasPlayedSpawnAnimation;
     public int phase = 1;
@@ -57,6 +56,7 @@ public class TCP_entity extends Monster  {
         // Create the instance of the class here to use later.
         this.dispatcher = new TCP_entityDispatcher(this);
         this.moveAnalysis = new MoveAnalysis(this);
+        this.setPersistenceRequired();
         this.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_SWORD));
     }
 
@@ -70,8 +70,8 @@ public class TCP_entity extends Monster  {
                 this,
                 1.2,
                 getAttackReachSqr(this),
-                attack_animation_length_tick,
-                attack_damage_delay_tick,
+                default_attack_animation_length_tick,
+                default_attack_damage_delay_tick,
                 () -> {
                     dispatcher.attack(this);
                     swing(InteractionHand.MAIN_HAND);

@@ -12,8 +12,7 @@ import net.neoforged.neoforge.event.EventHooks;
 
 public class TCP_entity_build_path_goal extends Goal {
     private static final int STUCK_TICKS_BEFORE_BUILDING = 1;
-    private static final int PHASE_4_BLOCKS_PER_TICK = 4;
-    private static final double BUILD_SPEED = 3.0D;
+    private static final double BUILD_SPEED = 300.0D;
     private static final double MIN_MOVEMENT_SQR = 0.0025D;
     private static final double UPWARD_BUILD_HEIGHT_DIFFERENCE = 2.5D;
 
@@ -21,6 +20,7 @@ public class TCP_entity_build_path_goal extends Goal {
     private int stuckTicks;
     private double lastX;
     private double lastZ;
+    private int blocksPerTick = 1;
 
     public TCP_entity_build_path_goal(TCP_entity entity) {
         this.entity = entity;
@@ -59,11 +59,7 @@ public class TCP_entity_build_path_goal extends Goal {
         }
 
         if (entity.phase == 4) {
-            int placedBlocks = buildPath(serverLevel, target, PHASE_4_BLOCKS_PER_TICK);
-            if (placedBlocks > 0) {
-                afterBuilding(target);
-            }
-            return;
+            blocksPerTick = 4;
         }
 
         if (shouldTower(target) && placeTowerBlock(serverLevel, target)) {
@@ -77,7 +73,7 @@ public class TCP_entity_build_path_goal extends Goal {
         }
 
         stuckTicks++;
-        if (stuckTicks >= STUCK_TICKS_BEFORE_BUILDING && buildPath(serverLevel, target, 1) > 0) {
+        if (stuckTicks >= STUCK_TICKS_BEFORE_BUILDING && buildPath(serverLevel, target, blocksPerTick) > 0) {
             afterBuilding(target);
         }
     }
@@ -101,13 +97,10 @@ public class TCP_entity_build_path_goal extends Goal {
 
     private LivingEntity getTargetToReach() {
         LivingEntity target = entity.getTarget();
-        if (!(target instanceof Player) || !target.isAlive()) {
+        if (target == null || !target.isAlive() || entity.distanceToSqr(target) <= entity.getAttackReachSqr(target)){
             return null;
         }
         if (!(entity.level() instanceof ServerLevel serverLevel) || !EventHooks.canEntityGrief(serverLevel, entity)) {
-            return null;
-        }
-        if (entity.distanceToSqr(target) <= entity.getAttackReachSqr(target)) {
             return null;
         }
 
@@ -151,7 +144,7 @@ public class TCP_entity_build_path_goal extends Goal {
         double x = target.getX() - entity.getX();
         double z = target.getZ() - entity.getZ();
         double horizontalDistance = Math.sqrt(x * x + z * z);
-        if (horizontalDistance <= 1.0E-5D) {
+        if (horizontalDistance <= 0.5) {
             return false;
         }
 
@@ -198,10 +191,10 @@ public class TCP_entity_build_path_goal extends Goal {
     }
 
     private boolean canPlaceTowerBlock(ServerLevel serverLevel, BlockPos pos) {
-        return serverLevel.getBlockState(pos).canBeReplaced() && pos.getY() < entity.getBoundingBox().minY;
+        return serverLevel.getBlockState(pos).canBeReplaced() && !isInsideEntity(pos);
     }
 
     private boolean isInsideEntity(BlockPos pos) {
-        return new AABB(pos).intersects(entity.getBoundingBox().inflate(0.05D));
+        return new AABB(pos).intersects(entity.getBoundingBox());
     }
 }
