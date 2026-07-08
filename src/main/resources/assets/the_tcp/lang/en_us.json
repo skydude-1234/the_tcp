@@ -1,5 +1,7 @@
 {
-  "itemGroup.the_tcp": "Example Mod Tab",
+  "itemGroup.the_tcp": "The TCP",
   "block.the_tcp.example_block": "Example Block",
-  "item.the_tcp.example_item": "Example Item"
+  "item.the_tcp.example_item": "Example Item",
+  "item.the_tcp.infamous_wool": "Infamous Wool",
+  "entity.the_tcp.tcp": "TCP Entity"
 }

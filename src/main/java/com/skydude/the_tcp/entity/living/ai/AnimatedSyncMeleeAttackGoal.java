@@ -20,7 +20,7 @@ public class AnimatedSyncMeleeAttackGoal extends Goal {
     public int attackAnimationTick;
     public boolean attackDamageDone;
     public final double attackreachsqr;
-
+    public boolean attackWhileMoving = false;
 
     public AnimatedSyncMeleeAttackGoal(
             PathfinderMob entity,
@@ -89,7 +89,9 @@ public class AnimatedSyncMeleeAttackGoal extends Goal {
         lookAtTarget(target);
 
         if (canHitAttackTarget(target)) {
-            this.entity.getNavigation().stop();
+            if(!attackWhileMoving) {
+                this.entity.getNavigation().stop();
+            }
             this.startAttackAnimation(target);
         } else {
             this.entity.getNavigation().moveTo(target, this.speedModifier);

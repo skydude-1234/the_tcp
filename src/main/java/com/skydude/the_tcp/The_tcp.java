@@ -2,6 +2,7 @@ package com.skydude.the_tcp;
 
 import com.mojang.logging.LogUtils;
 import com.skydude.the_tcp.init.EntityRegistry;
+import com.skydude.the_tcp.init.ItemRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -11,6 +12,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -42,6 +44,15 @@ public class The_tcp {
     private static final Logger LOGGER = LogUtils.getLogger();
    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> THE_TCP_TAB = CREATIVE_MODE_TABS.register(
+            "the_tcp",
+            () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.the_tcp"))
+                    .icon(() -> new ItemStack(ItemRegistry.INFAMOUS_WOOL.get()))
+                    .displayItems((parameters, output) -> output.accept(ItemRegistry.INFAMOUS_WOOL.get()))
+                    .build()
+    );
+
 
 
     // Creates a creative tab with the id "the_tcp:example_tab" for the example item, that is placed after the combat tab
@@ -54,6 +65,7 @@ public class The_tcp {
 
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
+        ItemRegistry.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (The_tcp) to respond directly to events.

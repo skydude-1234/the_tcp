@@ -4,6 +4,7 @@ import com.skydude.the_tcp.entity.living.ai.TCP_entity_melee_goal;
 import com.skydude.the_tcp.entity.living.ai.TCP_entity_build_path_goal;
 import mod.azure.azurelib.common.ai.pathing.AzureNavigation;
 import mod.azure.azurelib.common.util.MoveAnalysis;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -29,6 +30,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import org.joml.Vector3f;
 
 import java.util.Objects;
 
@@ -37,6 +39,10 @@ public class TCP_entity extends Monster  {
             TCP_entity.class,
             EntityDataSerializers.INT
     );
+    private static final Vector3f WHITE_PARTICLE = new Vector3f(1.0F, 1.0F, 1.0F);
+    private static final Vector3f BLUE_PARTICLE = new Vector3f(0.31F, 0.91F, 1.0F);
+    private static final Vector3f RED_PARTICLE = new Vector3f(1.0F, 0.0F, 0.0F);
+    private static final double HEAD_OUTLINE_BACK_OFFSET = -0.14D;
 
     public static int default_attack_damage_delay_tick = 10;
     public static int default_attack_animation_length_tick = 20;
@@ -65,7 +71,7 @@ public class TCP_entity extends Monster  {
         super.registerGoals();
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(0, new TCP_entity_build_path_goal(this));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, false));
         this.meleeGoal = new TCP_entity_melee_goal(
                 this,
                 1.2,
@@ -104,6 +110,10 @@ public class TCP_entity extends Monster  {
             } else {
                 dispatcher.walk();
             }
+
+            if (this.level() instanceof ServerLevel serverLevel) {
+                spawnPhaseParticles(serverLevel);
+            }
         }
 
 
@@ -131,18 +141,83 @@ public class TCP_entity extends Monster  {
     }
     public void setPhase(int phase) {
         this.phase = phase;
-        if(phase == 2){
+
+        if(phase >= 2){
             this.meleeGoal.setAnimationTicks(11, 6);
         }
-        if(phase == 3){
-            setPhase(2);
+        if(phase >= 3){
             this.attack_name = "critattack";
         }
-        if(phase == 4){
-            setPhase(3);
+        if(phase >= 4){
             this.attackrange = 16;
         }
     }
+
+    private void spawnPhaseParticles(ServerLevel serverLevel) {
+        if (phase <= 1) {
+            return;
+        }
+
+        Vector3f color;
+        if(phase == 2){
+            color = WHITE_PARTICLE;
+        } else if (phase == 3){
+            color = BLUE_PARTICLE;
+        } else {
+            color = RED_PARTICLE;
+        }
+
+
+        DustParticleOptions particleOptions = new DustParticleOptions(color, 0.75F);
+        int pointsPerLine = 3;
+
+        spawnOutlineSegment(serverLevel, particleOptions, -0.26D, 2.05D, 0.26D, 2.05D, HEAD_OUTLINE_BACK_OFFSET, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, -0.30D, 1.72D, -0.30D, 2.05D, HEAD_OUTLINE_BACK_OFFSET, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, 0.30D, 1.72D, 0.30D, 2.05D, HEAD_OUTLINE_BACK_OFFSET, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, -0.20D, 1.66D, 0.20D, 1.66D, HEAD_OUTLINE_BACK_OFFSET, pointsPerLine);
+
+        spawnOutlineSegment(serverLevel, particleOptions, -0.44D, 1.48D, -0.24D, 1.52D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, 0.24D, 1.52D, 0.44D, 1.48D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, -0.44D, 1.48D, -0.42D, 0.88D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, 0.44D, 1.48D, 0.42D, 0.88D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, -0.48D, 0.78D, -0.36D, 0.78D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, 0.36D, 0.78D, 0.48D, 0.78D, pointsPerLine);
+
+        spawnOutlineSegment(serverLevel, particleOptions, -0.22D, 1.42D, -0.18D, 0.76D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, 0.22D, 1.42D, 0.18D, 0.76D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, -0.18D, 0.76D, 0.18D, 0.76D, pointsPerLine);
+
+        spawnOutlineSegment(serverLevel, particleOptions, -0.17D, 0.72D, -0.17D, 0.18D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, 0.17D, 0.72D, 0.17D, 0.18D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, -0.06D, 0.70D, -0.06D, 0.24D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, 0.06D, 0.70D, 0.06D, 0.24D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, -0.22D, 0.14D, -0.08D, 0.14D, pointsPerLine);
+        spawnOutlineSegment(serverLevel, particleOptions, 0.08D, 0.14D, 0.22D, 0.14D, pointsPerLine);
+    }
+
+    private void spawnOutlineSegment(ServerLevel serverLevel, DustParticleOptions particleOptions, double startX, double startY, double endX, double endY, int points) {
+        spawnOutlineSegment(serverLevel, particleOptions, startX, startY, endX, endY, 0.0D, points);
+    }
+
+    private void spawnOutlineSegment(ServerLevel serverLevel, DustParticleOptions particleOptions, double startX, double startY, double endX, double endY, double localZ, int points) {
+        for (int i = 0; i < points; i++) {
+            double progress = points == 1 ? 0.0D : (double) i / (points - 1);
+            double localX = startX + (endX - startX) * progress;
+            double yOffset = startY + (endY - startY) * progress;
+            spawnOutlineParticle(serverLevel, particleOptions, localX, yOffset, localZ);
+        }
+    }
+
+    private void spawnOutlineParticle(ServerLevel serverLevel, DustParticleOptions particleOptions, double localX, double yOffset, double localZ) {
+        double yaw = Math.toRadians(getYRot());
+        double cos = Math.cos(yaw);
+        double sin = Math.sin(yaw);
+        double x = getX() + localX * cos - localZ * sin;
+        double z = getZ() + localX * sin + localZ * cos;
+
+        serverLevel.sendParticles(particleOptions, x, getY() + yOffset, z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+    }
+
     // horrendous override
     @Override
     public boolean doHurtTarget(Entity p_21372_) {

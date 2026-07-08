@@ -5,7 +5,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.event.EventHooks;
@@ -14,7 +13,9 @@ public class TCP_entity_build_path_goal extends Goal {
     private static final int STUCK_TICKS_BEFORE_BUILDING = 1;
     private static final double BUILD_SPEED = 300.0D;
     private static final double MIN_MOVEMENT_SQR = 0.0025D;
-    private static final double UPWARD_BUILD_HEIGHT_DIFFERENCE = 2.5D;
+    private static final double DEFAULT_UPWARD_HEIGHT_DIFFERENCE = 2.5D;
+    private static final double STUCK_UPWARD_HEIGHT_DIFFERENCE = 1D;
+    private static final double CLIFF_CHECK_FORWARD_OFFSET = 1.2D;
 
     private final TCP_entity entity;
     private int stuckTicks;
@@ -60,9 +61,15 @@ public class TCP_entity_build_path_goal extends Goal {
 
         if (entity.phase == 4) {
             blocksPerTick = 4;
+        } else {
+            blocksPerTick = 2;
+        }
+        if (isFacingCliff(serverLevel, target) && buildBridge(serverLevel, target, blocksPerTick) > 0) {
+            afterBuilding(target);
+            return;
         }
 
-        if (shouldTower(target) && placeTowerBlock(serverLevel, target)) {
+        if (shouldTower(target, DEFAULT_UPWARD_HEIGHT_DIFFERENCE) && placeTowerBlock(serverLevel, target)) {
             afterBuilding(target);
             return;
         }
@@ -97,7 +104,12 @@ public class TCP_entity_build_path_goal extends Goal {
 
     private LivingEntity getTargetToReach() {
         LivingEntity target = entity.getTarget();
-        if (target == null || !target.isAlive() || entity.distanceToSqr(target) <= entity.getAttackReachSqr(target)){
+        if (target == null || !target.isAlive()){
+            return null;
+        }
+        double upwardDifference = target.getY() - entity.getY();
+        if (entity.distanceToSqr(target) <= entity.getAttackReachSqr(target)
+                && upwardDifference < STUCK_UPWARD_HEIGHT_DIFFERENCE) {
             return null;
         }
         if (!(entity.level() instanceof ServerLevel serverLevel) || !EventHooks.canEntityGrief(serverLevel, entity)) {
@@ -108,14 +120,14 @@ public class TCP_entity_build_path_goal extends Goal {
     }
 
     private int buildPath(ServerLevel serverLevel, LivingEntity target, int maxBlocks) {
-        if (shouldTower(target)) {
+        if (shouldTower(target, STUCK_UPWARD_HEIGHT_DIFFERENCE)) {
             return placeTowerBlock(serverLevel, target) ? 1 : 0;
         }
 
         int placedBlocks = 0;
         for (int i = 0; i < maxBlocks; i++) {
             double forwardOffset = entity.phase == 4 ? 1.8D + i : 1.2D;
-            int upwardOffset = target.getY() - entity.getY() > UPWARD_BUILD_HEIGHT_DIFFERENCE ? i : 0;
+            int upwardOffset = target.getY() - entity.getY() > DEFAULT_UPWARD_HEIGHT_DIFFERENCE ? i : 0;
 
             if (placeBridgeOrStairBlock(serverLevel, target, forwardOffset, upwardOffset)) {
                 placedBlocks++;
@@ -125,8 +137,49 @@ public class TCP_entity_build_path_goal extends Goal {
         return placedBlocks;
     }
 
-    private boolean shouldTower(LivingEntity target) {
-        return target.getY() - entity.getY() > UPWARD_BUILD_HEIGHT_DIFFERENCE;
+    private int buildBridge(ServerLevel serverLevel, LivingEntity target, int maxBlocks) {
+        int placedBlocks = 0;
+        for (int i = 0; i < maxBlocks; i++) {
+            double forwardOffset = entity.phase == 4 ? 1.8D + i : 1.2D + i;
+
+            if (placeCliffBlockAhead(serverLevel, target, forwardOffset)) {
+                placedBlocks++;
+            }
+        }
+
+        return placedBlocks;
+    }
+
+    private boolean shouldTower(LivingEntity target, double buildreq) {
+        return target.getY() - entity.getY() >= buildreq;
+    }
+
+    private boolean isFacingCliff(ServerLevel serverLevel, LivingEntity target) {
+        double x = target.getX() - entity.getX();
+        double z = target.getZ() - entity.getZ();
+        double horizontalDistance = Math.sqrt(x * x + z * z);
+        if (horizontalDistance <= 0.5) {
+            return false;
+        }
+
+        double xStep = x / horizontalDistance;
+        double zStep = z / horizontalDistance;
+        BlockPos feetAhead = BlockPos.containing(
+                entity.getX() + xStep * CLIFF_CHECK_FORWARD_OFFSET,
+                entity.getY(),
+                entity.getZ() + zStep * CLIFF_CHECK_FORWARD_OFFSET
+        );
+
+        return canPassThrough(serverLevel, feetAhead)
+                && canPassThrough(serverLevel, feetAhead.above())
+                && !canStandAt(serverLevel, feetAhead)
+                && !canStandAt(serverLevel, feetAhead.below());
+    }
+
+    private boolean canStandAt(ServerLevel serverLevel, BlockPos feetPos) {
+        return canPassThrough(serverLevel, feetPos)
+                && canPassThrough(serverLevel, feetPos.above())
+                && !serverLevel.getBlockState(feetPos.below()).canBeReplaced();
     }
 
     private boolean placeTowerBlock(ServerLevel serverLevel, LivingEntity target) {
@@ -136,7 +189,7 @@ public class TCP_entity_build_path_goal extends Goal {
 
         entity.getJumpControl().jump();
 
-        BlockPos underFeet = BlockPos.containing(entity.getX(), entity.getBoundingBox().minY - 0.05D, entity.getZ());
+        BlockPos underFeet = BlockPos.containing(entity.getX(), entity.getBoundingBox().minY - 1.0D, entity.getZ());
         return canPlaceTowerBlock(serverLevel, underFeet) && placeWool(serverLevel, underFeet);
     }
 
@@ -156,9 +209,28 @@ public class TCP_entity_build_path_goal extends Goal {
                 entity.getZ() + zStep * forwardOffset
         );
 
-        if (target.getY() - entity.getY() > UPWARD_BUILD_HEIGHT_DIFFERENCE && placeStairBlock(serverLevel, feetAhead)) {
+        if (target.getY() - entity.getY() > DEFAULT_UPWARD_HEIGHT_DIFFERENCE && placeStairBlock(serverLevel, feetAhead)) {
             return true;
         }
+
+        return placeBridgeBlock(serverLevel, feetAhead);
+    }
+
+    private boolean placeCliffBlockAhead(ServerLevel serverLevel, LivingEntity target, double forwardOffset) {
+        double x = target.getX() - entity.getX();
+        double z = target.getZ() - entity.getZ();
+        double horizontalDistance = Math.sqrt(x * x + z * z);
+        if (horizontalDistance <= 0.5) {
+            return false;
+        }
+
+        double xStep = x / horizontalDistance;
+        double zStep = z / horizontalDistance;
+        BlockPos feetAhead = BlockPos.containing(
+                entity.getX() + xStep * forwardOffset,
+                entity.getY(),
+                entity.getZ() + zStep * forwardOffset
+        );
 
         return placeBridgeBlock(serverLevel, feetAhead);
     }
