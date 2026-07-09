@@ -64,6 +64,13 @@ public class TCP_entity_build_path_goal extends Goal {
         } else {
             blocksPerTick = 2;
         }
+
+        if (shouldDescend(target)) {
+            resetStuckCheck();
+            entity.getNavigation().moveTo(target, BUILD_SPEED);
+            return;
+        }
+
         if (isFacingCliff(serverLevel, target) && buildBridge(serverLevel, target, blocksPerTick) > 0) {
             afterBuilding(target);
             return;
@@ -107,9 +114,8 @@ public class TCP_entity_build_path_goal extends Goal {
         if (target == null || !target.isAlive()){
             return null;
         }
-        double upwardDifference = target.getY() - entity.getY();
         if (entity.distanceToSqr(target) <= entity.getAttackReachSqr(target)
-                && upwardDifference < STUCK_UPWARD_HEIGHT_DIFFERENCE) {
+                && target.getY() - entity.getY() < STUCK_UPWARD_HEIGHT_DIFFERENCE) {
             return null;
         }
         if (!(entity.level() instanceof ServerLevel serverLevel) || !EventHooks.canEntityGrief(serverLevel, entity)) {
@@ -152,6 +158,10 @@ public class TCP_entity_build_path_goal extends Goal {
 
     private boolean shouldTower(LivingEntity target, double buildreq) {
         return target.getY() - entity.getY() >= buildreq;
+    }
+
+    private boolean shouldDescend(LivingEntity target) {
+        return entity.getY() - target.getY() >= STUCK_UPWARD_HEIGHT_DIFFERENCE;
     }
 
     private boolean isFacingCliff(ServerLevel serverLevel, LivingEntity target) {

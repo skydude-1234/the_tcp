@@ -253,6 +253,10 @@ public class TCP_entity extends Monster  {
         return flag;
     }
     @Override
+    public boolean causeFallDamage(float fallDistance, float multiplier, DamageSource source) {
+        return false;
+    }
+    @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(CRIT_PARTICLE_TARGET_ID, 0);
@@ -289,7 +293,7 @@ public class TCP_entity extends Monster  {
         return LivingEntity.createLivingAttributes()
                 .add(Attributes.ATTACK_DAMAGE, 1.0)
                 .add(Attributes.MAX_HEALTH, 200.0)
-                .add(Attributes.FOLLOW_RANGE, 24.0)
+                .add(Attributes.FOLLOW_RANGE, 64.0)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1)
                 .add(Attributes.MOVEMENT_SPEED, .2);
     }
