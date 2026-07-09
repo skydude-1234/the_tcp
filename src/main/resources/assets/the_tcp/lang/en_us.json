@@ -2,6 +2,9 @@
   "itemGroup.the_tcp": "The TCP",
   "block.the_tcp.example_block": "Example Block",
   "item.the_tcp.example_item": "Example Item",
+  "item.the_tcp.essence_of_pvp": "Essence of PVP",
   "item.the_tcp.infamous_wool": "Infamous Wool",
+  "item.the_tcp.tcp_mask": "TCP Mask",
+  "item.the_tcp.tcp_mask.description": "Twincoolpizza never takes knockback",
   "entity.the_tcp.tcp": "TCP Entity"
 }

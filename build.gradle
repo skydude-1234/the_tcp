@@ -18,7 +18,12 @@ repositories {
         name = "CurseMaven"
         url = "https://cursemaven.com"
     }
-
+    repositories {
+        maven {
+            name = "Illusive Soulworks maven"
+            url = "https://maven.theillusivec4.top/"
+        }
+    }
 }
 
 base {
@@ -128,6 +133,13 @@ dependencies {
     // AZURELIB
     implementation "mod.azure.azurelib:azurelib-neo-${minecraft_version}:${azure_version}"
     runtimeOnly "curse.maven:jade-324717:6853386"
+    //CURIOS
+    dependencies {
+        // Compile against only the API artifact
+        compileOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}:api"
+        // Use the full Curios API jar at runtime
+        runtimeOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
+    }
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
