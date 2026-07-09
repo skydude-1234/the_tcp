@@ -14,7 +14,7 @@ import java.util.Objects;
 public class TCP_entity_build_path_goal extends Goal {
     private static final int STUCK_TICKS_BEFORE_BUILDING = 1;
     private static final double BUILD_SPEED = 300.0D;
-    private static final double MIN_MOVEMENT_SQR = 0.0025D;
+    private static final double MIN_MOVEMENT_SQR = 0.25D;
     private static final double DEFAULT_UPWARD_HEIGHT_DIFFERENCE = 2.5D;
     private static final double STUCK_UPWARD_HEIGHT_DIFFERENCE = 1D;
     private static final double CLIFF_CHECK_FORWARD_OFFSET = 1.2D;
