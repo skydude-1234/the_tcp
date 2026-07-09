@@ -9,6 +9,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.event.EventHooks;
 
+import java.util.Objects;
+
 public class TCP_entity_build_path_goal extends Goal {
     private static final int STUCK_TICKS_BEFORE_BUILDING = 1;
     private static final double BUILD_SPEED = 300.0D;
@@ -21,6 +23,7 @@ public class TCP_entity_build_path_goal extends Goal {
     private int stuckTicks;
     private double lastX;
     private double lastZ;
+    private double lastY;
     private int blocksPerTick = 1;
 
     public TCP_entity_build_path_goal(TCP_entity entity) {
@@ -100,6 +103,10 @@ public class TCP_entity_build_path_goal extends Goal {
     private boolean isMakingProgress() {
         double movedX = entity.getX() - lastX;
         double movedZ = entity.getZ() - lastZ;
+        if(Objects.requireNonNull(getTargetToReach()).getY() > entity.getY()){
+            double movedY = entity.getY() - lastY;
+            return movedY * movedY > MIN_MOVEMENT_SQR;
+        }
         return movedX * movedX + movedZ * movedZ > MIN_MOVEMENT_SQR;
     }
 
@@ -107,6 +114,7 @@ public class TCP_entity_build_path_goal extends Goal {
         stuckTicks = 0;
         lastX = entity.getX();
         lastZ = entity.getZ();
+        lastY = entity.getY();
     }
 
     private LivingEntity getTargetToReach() {
